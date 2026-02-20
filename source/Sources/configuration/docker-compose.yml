@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: ../frontend_backend
+      dockerfile: ../configuration/Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+      - qdrant
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    volumes:
+      - ../frontend_backend:/app
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ../export_base_données/medicsearchmongodump:/dump
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mongod --bind_ip_all &
+        sleep 15
+        mongorestore --uri='mongodb://localhost:27017' --nsInclude='*.*' /dump/medicsearchmongodump
+        wait
+
+  qdrant:
+    image: qdrant/qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  mongo_data:
+  qdrant_data:
+

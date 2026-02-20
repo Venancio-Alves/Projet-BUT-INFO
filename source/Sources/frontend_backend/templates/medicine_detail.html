@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ medicine.nom }} - MedAtlas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/medicine_details.css') }}">
+</head>
+<body>
+    {% include 'components/header.html' %}
+    
+    <div class="medicine-detail-container">
+        <div class="detail-header">
+            <a href="/search" class="back-button">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <h1 class="medicine-name">{{ medicine.nom }}</h1>
+            
+            <div class="completude-info">
+                {% if medicine.pourcentage_completude %}
+                    <div class="completude-badge">
+                        <span class="completude-label">Complétude des données</span>
+                        <div class="completude-bar">
+                            <div class="completude-fill" style="width: {{ medicine.pourcentage_completude }}%"></div>
+                        </div>
+                        <span class="completude-percent">{{ medicine.pourcentage_completude }}%</span>
+                    </div>
+                {% endif %}
+                
+                {% if medicine.statut_completude %}
+                    <div class="statut-badge statut-{{ medicine.statut_completude|lower|replace(' ', '-') }}">
+                        {{ medicine.statut_completude }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detail-content">
+            <!-- Tabs Navigation -->
+            <div class="tabs-navigation">
+                <button class="tab-button active" data-tab="indications" onclick="switchTab(event, 'indications')">
+                    <i class="fas fa-pills"></i> Indications
+                </button>
+                <button class="tab-button" data-tab="posologie" onclick="switchTab(event, 'posologie')">
+                    <i class="fas fa-clock"></i> Posologie
+                </button>
+                <button class="tab-button" data-tab="composition" onclick="switchTab(event, 'composition')">
+                    <i class="fas fa-flask"></i> Composition
+                </button>
+                <button class="tab-button" data-tab="securite" onclick="switchTab(event, 'securite')">
+                    <i class="fas fa-shield-alt"></i> Sécurité
+                </button>
+                <button class="tab-button" data-tab="avertissements" onclick="switchTab(event, 'avertissements')">
+                    <i class="fas fa-exclamation-circle"></i> Avertissements
+                </button>
+                
+                <!-- Onglet pour les données brutes -->
+                {% if medicine.medic_brut_data %}
+                    <button class="tab-button" data-tab="donnees-brutes" onclick="switchTab(event, 'donnees-brutes')">
+                        <i class="fas fa-database"></i> Données Brutes
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tabs-content">
+                <!-- Indications Tab -->
+                <div class="tab-pane active" id="indications">
+                    {% if medicine.indications %}
+                        <div class="tab-section">
+                            <h2>Indications Thérapeutiques</h2>
+                            <div class="section-body">
+                                <ul class="indications-list">
+                                    {% for indication in medicine.indications.split(' - ') %}
+                                        {% if indication.strip() %}
+                                            <li>{{ indication.strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Pas d'informations disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Posologie Tab -->
+                <div class="tab-pane" id="posologie">
+                    {% if medicine.posologie %}
+                        <div class="tab-section">
+                            <h2>Posologie et Mode d'Administration</h2>
+                            <div class="section-body">
+                                <ul class="posologie-list">
+                                    {% for posologie in medicine.posologie.split(' - ') %}
+                                        {% if posologie.strip() %}
+                                            <li>{{ posologie.strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Pas d'informations disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Composition Tab -->
+                <div class="tab-pane" id="composition">
+                    {% if medicine.composition %}
+                        <div class="tab-section">
+                            <h2>Composition</h2>
+                            <div class="section-body">
+                                <p>{{ medicine.composition }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Pas d'informations disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Securite Tab -->
+                <div class="tab-pane" id="securite">
+                    <div class="security-grid">
+                        {% if medicine.effets_secondaires %}
+                        <div class="security-item">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Effets Secondaires</h3>
+                            <div class="section-body">
+                                <p>{{ medicine.effets_secondaires }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if medicine.contre_indications %}
+                        <div class="security-item">
+                            <h3><i class="fas fa-ban"></i> Contre-indications</h3>
+                            <div class="section-body">
+                                <p>{{ medicine.contre_indications }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if medicine.interactions %}
+                        <div class="security-item">
+                            <h3><i class="fas fa-link"></i> Interactions</h3>
+                            <div class="section-body">
+                                <ul class="interactions-list">
+                                    {% for interaction in medicine.interactions.split('\n') %}
+                                        {% if interaction.strip() %}
+                                            <li>{{ interaction.strip().lstrip('-').strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if medicine.interactions_graves %}
+                        <div class="security-item danger-item">
+                            <h3><i class="fas fa-exclamation-circle"></i> Interactions Graves</h3>
+                            <div class="section-body interactions-graves">
+                                <ul class="interactions-list">
+                                    {% for interaction in medicine.interactions_graves.split('\n') %}
+                                        {% if interaction.strip() %}
+                                            <li>{{ interaction.strip().lstrip('-').strip() }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if not medicine.effets_secondaires and not medicine.contre_indications and not medicine.interactions %}
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Pas d'informations disponibles</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Avertissements Tab -->
+                <div class="tab-pane" id="avertissements">
+                    {% if medicine.mises_en_garde %}
+                        <div class="tab-section">
+                            <h2>Mises en Garde et Précautions</h2>
+                            <div class="alert-box">
+                                <p>{{ medicine.mises_en_garde }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Pas d'informations disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Données Brutes Tab -->
+                {% if medicine.medic_brut_data %}
+                <div class="tab-pane" id="donnees-brutes">
+                    <div class="tab-section">
+                        <h2>Données Brutes RCP</h2>
+                        
+                        {% set brut_data = medicine['medic_brut_data'] %}
+                        
+                        <!-- Afficher les sections_rcp en texte simple -->
+                        {% if brut_data.get('sections_rcp') %}
+                            {% for section_num, section_data in brut_data['sections_rcp'].items()|sort %}
+                                <div style="margin-bottom: 40px; padding: 20px; border-left: 4px solid #0066cc; background-color: #f9f9f9;">
+                                    <h3 style="color: #0066cc; margin-top: 0; margin-bottom: 15px;">Section {{ section_num }}{% if section_data.get('titre') %}: {{ section_data['titre'] }}{% endif %}</h3>
+                                    {% if section_data.get('contenu') %}
+                                        <p style="line-height: 1.8; color: #333; white-space: pre-wrap; word-wrap: break-word;">{{ section_data['contenu'] }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Données Brutes Tab (second) -->
+                <div class="tab-pane" id="donnees-brutes">
+                    <div class="tab-section">
+                        <h2>Données Brutes MongoDB</h2>
+                        <div class="raw-data-container">
+                            <div class="raw-data-controls">
+                                <button class="btn-copy-json" onclick="copyJsonToClipboard()">
+                                    <i class="fas fa-copy"></i> Copier JSON
+                                </button>
+                                <button class="btn-toggle-format" onclick="toggleJsonFormat()">
+                                    <i class="fas fa-compress"></i> <span id="format-toggle-text">Compresser</span>
+                                </button>
+                            </div>
+                            <pre id="raw-data-display" class="raw-data-display">{{ medicine_json }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="detail-metadata">
+                {% if medicine.date_traitement %}
+                <div class="metadata-item">
+                    <span class="metadata-label">
+                        <i class="fas fa-calendar"></i> Date traitement
+                    </span>
+                    <span class="metadata-value">{{ medicine.date_traitement }}</span>
+                </div>
+                {% endif %}
+                
+                {% if medicine.url %}
+                <div class="metadata-item">
+                    <span class="metadata-label">
+                        <i class="fas fa-external-link-alt"></i> Fiche officielle
+                    </span>
+                    <a href="{{ medicine.url }}" target="_blank" class="external-link">
+                        Consulter la source
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% include 'components/footer.html' %}
+    
+    <script>
+        // State for JSON format
+        let isJsonExpanded = true;
+
+        function switchTab(event, tabName) {
+            event.preventDefault();
+            
+            // Masquer tous les onglets
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Retirer la classe active de tous les boutons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Afficher l'onglet actif et mettre à jour le bouton
+            document.getElementById(tabName).classList.add('active');
+            event.target.closest('.tab-button').classList.add('active');
+        }
+
+        // Fonction pour étendre/réduire les sections RCP
+        function expandSection(button) {
+            const sectionText = button.closest('.section-text');
+            const fullText = button.getAttribute('data-full-text');
+            const paragraph = sectionText.querySelector('p');
+            
+            if (button.classList.contains('expanded')) {
+                // Réduire
+                paragraph.textContent = fullText.substring(0, 300) + '...';
+                button.innerHTML = '<i class="fas fa-chevron-down"></i> Voir plus';
+                button.classList.remove('expanded');
+            } else {
+                // Étendre
+                paragraph.textContent = fullText;
+                button.innerHTML = '<i class="fas fa-chevron-up"></i> Voir moins';
+                button.classList.add('expanded');
+            }
+        }
+
+        // Copier JSON dans le presse-papiers
+        function copyJsonToClipboard() {
+            const jsonElement = document.getElementById('raw-data-display');
+            const jsonText = jsonElement.textContent;
+            
+            navigator.clipboard.writeText(jsonText).then(() => {
+                const btn = event.target.closest('.btn-copy-json');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copié!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Erreur lors de la copie: ' + err);
+            });
+        }
+
+        // Basculer entre JSON expansé et compressé
+        function toggleJsonFormat() {
+            const jsonElement = document.getElementById('raw-data-display');
+            const toggleBtn = event.target.closest('.btn-toggle-format');
+            const toggleText = document.getElementById('format-toggle-text');
+            
+            // Récupérer le JSON brut du data attribute ou du texte
+            const jsonText = jsonElement.textContent.trim();
+            
+            try {
+                const jsonObj = JSON.parse(jsonText);
+                
+                if (isJsonExpanded) {
+                    // Compresser
+                    jsonElement.textContent = JSON.stringify(jsonObj);
+                    toggleText.textContent = 'Expanser';
+                    toggleBtn.innerHTML = '<i class="fas fa-expand"></i> <span id="format-toggle-text">Expanser</span>';
+                } else {
+                    // Expanser
+                    jsonElement.textContent = JSON.stringify(jsonObj, null, 2);
+                    toggleText.textContent = 'Compresser';
+                    toggleBtn.innerHTML = '<i class="fas fa-compress"></i> <span id="format-toggle-text">Compresser</span>';
+                }
+                
+                isJsonExpanded = !isJsonExpanded;
+            } catch (e) {
+                alert('Erreur JSON: ' + e.message);
+            }
+        }
+
+        // Keyboard navigation
+        document.querySelectorAll('.tab-button').forEach((button, index) => {
+            button.addEventListener('keydown', (e) => {
+                let nextButton;
+                if (e.key === 'ArrowRight') {
+                    nextButton = button.nextElementSibling;
+                    if (!nextButton) nextButton = document.querySelector('.tab-button:first-of-type');
+                } else if (e.key === 'ArrowLeft') {
+                    nextButton = button.previousElementSibling;
+                    if (!nextButton) nextButton = document.querySelector('.tab-button:last-of-type');
+                }
+                if (nextButton) {
+                    nextButton.focus();
+                    nextButton.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

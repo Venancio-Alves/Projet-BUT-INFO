@@ -1,0 +1,42 @@
+# Environnement Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Docker
+.docker-compose.override.yml
+
+# Base de données
+backups/
+export_temp/
+*.db
+*.sqlite
+
+# Fichiers sensibles
+.env.local
+.env.*.local
+secrets.json
+
+# Build
+build/
+dist/
+*.egg-info/

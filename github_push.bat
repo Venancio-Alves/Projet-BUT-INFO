@@ -12,7 +12,7 @@ cd /d "C:\Users\thugg\OneDrive\Documents\semestre 5\SAE\sae1.1"
 
 echo.
 echo 📝 Entrez l'URL de votre repo GitHub:
-echo Exemple: https://github.com/tonnom/medicsearch.git
+echo Exemple: https://github.com/tonnom/Projet-BUT-INFO.git
 echo.
 set /p GITHUB_URL="URL: "
 
@@ -31,4 +31,5 @@ echo.
 echo 🎉 Votre projet est maintenant sur GitHub!
 echo.
 echo =====================================
+pause
 pause
